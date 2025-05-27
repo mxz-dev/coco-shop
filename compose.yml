@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context:  ./backend
+      dockerfile: Dockerfile.dev
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend/app:/backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend/coco
+      dockerfile: Dockerfile.dev
+    command: npm run dev -- --host
+    working_dir: /app
+    volumes:
+      - ./frontend/coco:/app
+      - /app/node_modules  # Prevents node_modules from being overwritten
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+
+
+volumes:
+  postgres_data:
