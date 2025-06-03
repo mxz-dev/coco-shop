@@ -8,7 +8,7 @@ User = get_user_model()
 
 class Profile(models.Model):
     user = models.OneToOneField(User, related_name="user_profile", on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to="avatar/")
+    avatar = models.ImageField(upload_to="avatar/", null=True, blank=True)
     address = models.CharField(max_length=300)
     city = models.CharField(max_length=50)
     country = CountryField(blank_label='(Select country)', null=True, blank=True)
@@ -46,10 +46,10 @@ class Products(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
+           self.slug = slugify(self.name)
+        super(Products, self).save(*args, **kwargs)
         
 class ProductVariant(models.Model):
     SIZE_CHOICES = [
