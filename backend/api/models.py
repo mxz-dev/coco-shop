@@ -31,8 +31,6 @@ class ProductCategory(models.Model):
 
     def __str__(self):
         return self.category
-class ProductImage(models.Model):
-    pass
 
 class Products(models.Model):
     name = models.CharField(max_length=400)
@@ -79,6 +77,14 @@ class ProductVariant(models.Model):
         return 0
     def __str__(self):
         return f"Variant for {self.product.name}"
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(ProductVariant, related_name="productImage", on_delete=models.CASCADE, null=True)
+    image = models.ImageField(upload_to="product/", null=True)
+    is_main = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now=True)
+
+
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="cart")
     is_active = models.BooleanField(default=True)
