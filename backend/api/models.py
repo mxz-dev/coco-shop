@@ -37,7 +37,7 @@ class Products(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField()
     general_info = models.TextField(max_length=600)
-    category = models.ManyToManyField(ProductCategory)
+    categories = models.ManyToManyField(ProductCategory)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
