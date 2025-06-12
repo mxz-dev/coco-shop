@@ -26,11 +26,16 @@ class Profile(models.Model):
     
     def __str__(self):
         return f"{self.user.username} Profile."
+    class Meta:
+        verbose_name_plural = "User Profiles"
+
 class ProductCategory(models.Model):
     category = models.CharField(max_length=100)
 
     def __str__(self):
         return self.category
+    class Meta:
+        verbose_name_plural = "Product Categories"
 
 class Products(models.Model):
     name = models.CharField(max_length=400)
@@ -48,6 +53,10 @@ class Products(models.Model):
         if not self.slug:
            self.slug = slugify(self.name)
         super(Products, self).save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name_plural = "Products"
+        ordering = ['-created_at']
         
 class ProductVariant(models.Model):
     SIZE_CHOICES = [
@@ -91,7 +100,8 @@ class Cart(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
-
+    def __str__(self):
+        return f"Cart for {self.user.username}"
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
@@ -100,7 +110,8 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = ('cart', 'variant')  # Prevents duplicate variant entries in a single cart
-
+    def __str__(self):
+        return f"Item {self.variant} in {self.cart.user.username}'s cart"
 class Order(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -113,16 +124,12 @@ class Order(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, default="PENDING", max_length=25)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     is_paid = models.BooleanField(default=False)
-    paid_at = models.DateTimeField()
-
-    @property
-    def shipping(self):
-        self.user.profile.address
+    paid_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"order by {self.user}"
+        return f"order for {self.user.username} - {self.status}"
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_item')
     product = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
@@ -132,7 +139,7 @@ class OrderItem(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"item for {self.order}"
+        return f"order item for {self.order.user.username} - {self.product.product.name} ({self.quantity})"
 class Payment(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),

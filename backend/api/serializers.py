@@ -48,3 +48,29 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'view_name': 'products-detail', 'lookup_field': 'slug'}
         }
+
+class UserRegisterationSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField(write_only=True, required=True, label="Confirm Password")
+    class Meta:
+        model = User
+        fields = ["id", "username", "first_name", "last_name", "email", "password", "password2"]
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True, 'allow_blank': False}
+        }
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Email already exists.")
+        if password != password2:
+            raise serializers.ValidationError("Passwords do not match.")
+        return attrs
+    
+    def create(self, validated_data):
+        user = User.objects.create_user(username=validated_data['username'], first_name=validated_data.get('first_name', ''), last_name=validated_data.get('last_name', ''), email=validated_data['email'])
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+    
