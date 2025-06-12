@@ -1,18 +1,19 @@
 from django.shortcuts import render
 from rest_framework import viewsets
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
-from .serializers import UserSerializer, UserRegisterationSerializer, ProductVariantSerializer, ProductSerializer, ProductImageUploadSerializer, ProfileSerializer
+from .serializers.users import BaseUserSerializer, UserRegisterationSerializer, ProfileSerializer
+from .serializers.product import ProductSerializer, ProductVariantSerializer, ProductImageUploadSerializer
 from django.contrib.auth import get_user_model
 from .models import Products, ProductVariant, ProductImage, Profile
 from .permissions import IsProfileOwenerOrReadOnly
-from rest_framework.response import Response
 
 
 User = get_user_model()
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = BaseUserSerializer
     permission_classes = [IsAuthenticated]
 
 class UserRegisterationViewSet(viewsets.ModelViewSet):
