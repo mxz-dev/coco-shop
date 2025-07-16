@@ -2,9 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
 from .serializers.users import BaseUserSerializer, UserRegisterationSerializer, ProfileSerializer
-from .serializers.product import ProductSerializer, ProductVariantSerializer, ProductImageUploadSerializer, CartItemSerializer, CartSerializer
+from .serializers.product import ProductSerializer, ProductVariantSerializer, ProductImageUploadSerializer, CartItemSerializer, CartSerializer, OrderItemSerializer, OrderSerializer
 from django.contrib.auth import get_user_model
-from .models import Products, ProductVariant, ProductImage, Profile, Cart, CartItem
+from .models import Products, ProductVariant, ProductImage, Profile, Cart, CartItem, Order
 from .permissions import IsProfileOwenerOrReadOnly
 from rest_framework.decorators import action
 
@@ -91,3 +91,14 @@ class CartItemViewSet(viewsets.ModelViewSet):
             item.save()
         else:
             serializer.save(cart=cart)
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).prefetch_related('items')
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

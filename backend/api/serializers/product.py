@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Products, ProductVariant, ProductCategory, ProductImage, Cart, CartItem
+from api.models import Products, ProductVariant, ProductCategory, ProductImage, Cart, CartItem, Order, OrderItem
 from api.validators import validate_image
 from .users import BaseUserSerializer
 class ProductCategorySerilizer(serializers.ModelSerializer):
@@ -91,3 +91,56 @@ class CartSerializer(serializers.ModelSerializer):
             item.variant.price * item.quantity 
             for item in obj.items.all()
         )
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = [
+            'id',
+            'variant',
+            'quantity',
+            'price_at_perchase',
+        ]
+        read_only_fields = ['id','price_at_perchase']
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True)
+    class Meta:
+        model = Order
+        fields = [
+            'items',
+            'id',
+            'user',
+            'status',
+            'total_price',
+            'is_paid',
+            'paid_at',
+            'created_at'
+        ]
+        read_only_fields = ['user','status','is_paid','paid_at','total_price','created_at']
+
+    def create(self, validated_data):
+        items_data = validated_data.pop("items")
+        user = self.context["request"].user
+        validated_data.pop("user", None) 
+        order = Order.objects.create(user=user, total_price=0, **validated_data)
+
+        total_price = 0
+
+        for item_data in items_data:
+            product_variant = item_data["variant"]
+            quantity = item_data["quantity"]
+            price = product_variant.price
+            if product_variant.discount_price:
+                price = product_variant.discount_price
+            total_price += price * quantity
+            OrderItem.objects.create(
+                order=order,
+                variant=product_variant,
+                quantity=quantity,
+                price_at_perchase=price
+            )
+
+        order.total_price = total_price
+        order.save()
+
+        return order
