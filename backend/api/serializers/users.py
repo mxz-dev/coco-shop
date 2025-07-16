@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Profile, User, Cart, CartItem
+from api.models import Profile, User
 from api.validators import validate_confirm_password, validate_email_uniqueness
 
 class BaseUserSerializer(serializers.HyperlinkedModelSerializer):

@@ -11,6 +11,7 @@ def validate_image_size(image, max_size=5 * 1024 * 1024):
     if image.size > max_size:
         raise ValidationError(f"Image size should not exceed {max_size / (1024 * 1024)} MB.")
     return image
+
 def validate_image_format(image, allowed_formats=None):
     """
     Validates the format of the uploaded image.
@@ -20,6 +21,7 @@ def validate_image_format(image, allowed_formats=None):
     if image.content_type not in allowed_formats:
         raise ValidationError(f"Unsupported image format. Allowed formats are: {', '.join(allowed_formats)}.")
     return image
+
 def validate_image(image, max_size=5 * 1024 * 1024, allowed_formats=None):
     """
     Validates both the size and format of the uploaded image.
@@ -40,6 +42,7 @@ def validate_confirm_password(password, password2):
     if password != password2:
         raise ValidationError("Passwords do not match.")
     return password
+
 def validate_email_uniqueness(email, user_model):
     """
     Validates that the email is unique in the user model.

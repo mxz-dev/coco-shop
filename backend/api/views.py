@@ -1,12 +1,16 @@
+from django.contrib.auth import get_user_model
+
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.decorators import action
+
 from .serializers.users import BaseUserSerializer, UserRegisterationSerializer, ProfileSerializer
-from .serializers.product import ProductSerializer, ProductVariantSerializer, ProductImageUploadSerializer, CartItemSerializer, CartSerializer, OrderItemSerializer, OrderSerializer
-from django.contrib.auth import get_user_model
+from .serializers.product import ProductSerializer, ProductVariantSerializer, ProductImageUploadSerializer
+from .serializers.checkout import CartSerializer, CartItemSerializer, OrderSerializer
+
 from .models import Products, ProductVariant, ProductImage, Profile, Cart, CartItem, Order
 from .permissions import IsProfileOwenerOrReadOnly
-from rest_framework.decorators import action
 
 
 User = get_user_model()
@@ -86,7 +90,6 @@ class CartItemViewSet(viewsets.ModelViewSet):
         item = CartItem.objects.get(cart=cart, variant=variant)
 
         if item:
-            print(item.quantity)
             item.quantity += serializer.validated_data.get('quantity', 1)
             item.save()
         else:
