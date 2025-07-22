@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.decorators import action
@@ -12,7 +13,7 @@ from .serializers.checkout import CartSerializer, CartItemSerializer, OrderSeria
 from .models import Products, ProductVariant, ProductImage, Profile, Cart, CartItem, Order
 from .permissions import IsProfileOwenerOrReadOnly
 
-
+from .payments.zarinpal import zarinpal_payment, zarinpal_verify
 User = get_user_model()
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -105,3 +106,20 @@ class OrderViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class PaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id , format=None):
+
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        if order.is_paid:
+            return Response({
+                "message":"This order is already paid."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        payment_url = zarinpal_payment(amount=order.total_price, description=f"پرداخت سفارش #{order.id}", email=request.user.email, mobile=request.user.profile.mobile)
+        return Response({"payment_url":payment_url})

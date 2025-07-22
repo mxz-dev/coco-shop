@@ -134,3 +134,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 50
 }
+
+# Payment Configuration
+
+MARCHANT_ID = "dc17bfab-282e-4a44-b1de-8489f0758361" # this random UUID just for sandbox test.
+IS_SANDBOX = True
+CALLBACK_URL = "http://127.0.0.1/api/payment/callback"
+

@@ -2,19 +2,18 @@ from rest_framework import serializers
 from api.models import Cart, CartItem, Order, OrderItem
 
 class CartItemSerializer(serializers.ModelSerializer):
-    variant_name = serializers.CharField(source='variant.name', read_only=True)
+    variant_name = serializers.CharField(source='variant.product.name', read_only=True)
     variant_price = serializers.DecimalField(
         source='variant.price', 
         read_only=True, 
         max_digits=10, 
         decimal_places=2
     )
-    variant_image = serializers.ImageField(source='variant.image', read_only=True)
+    variant_image = serializers.ImageField(source='variant.images', read_only=True)
 
     class Meta:
         model = CartItem
         fields = [
-            'id', 
             'variant', 
             'variant_name', 
             'variant_price', 
@@ -34,7 +33,6 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = [
-            'id', 
             'user', 
             'is_active', 
             'created_at', 
@@ -53,12 +51,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = [
-            'id',
             'variant',
             'quantity',
             'price_at_perchase',
         ]
-        read_only_fields = ['id','price_at_perchase']
+        read_only_fields = ['price_at_perchase']
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
@@ -66,7 +63,6 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'items',
-            'id',
             'user',
             'status',
             'total_price',
@@ -74,7 +70,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'paid_at',
             'created_at'
         ]
-        read_only_fields = ['user','status','is_paid','paid_at','total_price','created_at']
+        read_only_fields = ['user','status','is_paid','paid_at','total_price']
 
     def create(self, validated_data):
         items_data = validated_data.pop("items")
@@ -88,9 +84,11 @@ class OrderSerializer(serializers.ModelSerializer):
             product_variant = item_data["variant"]
             quantity = item_data["quantity"]
             price = product_variant.price
+            
             if product_variant.discount_price:
                 price = product_variant.discount_price
             total_price += price * quantity
+
             OrderItem.objects.create(
                 order=order,
                 variant=product_variant,
@@ -102,3 +100,4 @@ class OrderSerializer(serializers.ModelSerializer):
         order.save()
 
         return order
+    
